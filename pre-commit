@@ -38,7 +38,7 @@ then
 		exit 0
 	fi
 
-	if [ $os = *"mingw64"* ] || [ $os = *"win"* ]
+	if [ $os =~ "mingw64" ] || [ $os =~ "win" ]
 	then
 		os=windows
 	fi
