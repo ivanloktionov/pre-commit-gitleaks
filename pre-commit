@@ -38,7 +38,7 @@ then
 		exit 0
 	fi
 
-	if [[ $os =~ "mingw64" ]] || [[ $os =~ "win" ]]
+	if [[ $os == *"mingw64"* ]] || [[ $os == *"win"* ]]
 	then
 		os=windows
 	fi
@@ -61,9 +61,3 @@ then
 fi
 echo 'Gitleaks is installed'
 gitleaks protect -v --staged --redact
-code=$(echo $?)
-if [ $code != "0" ]
-then
-	echo 'the latest commit has been reverted'
-	git revert $(git log | head -1| sed 's/commit //g')
-fi
