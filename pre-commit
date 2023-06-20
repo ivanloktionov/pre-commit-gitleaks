@@ -1,5 +1,69 @@
-repos:
-  - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.17.0
-    hooks:
-      - id: gitleaks
+#!/bin/sh
+
+gitleaksEnabled=$(git config gitleaks.hooks)
+
+echo "Gitleaks hooks config is enabled, continue then..."
+
+export PATH=/home/$(whoami)/bin:$PATH
+gitleaks version
+gitleaksInstalled=$(echo $?)
+
+if [ $gitleaksInstalled != "0" ]
+then
+	echo 'Gitleaks is not installed, working on installation'
+	os=$(uname -s | tr A-Z a-z)
+	arch=$(uname -m | tr A-Z a-z)
+	version=$(curl -k -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | grep '"tag_name":' | grep -Po '\d.*\d')
+	if [ $arch = "x86_64"  ] || [ $arch = "amd64"  ] || [ $arch = "x86"  ]
+	then
+		arch=x64
+	fi
+
+	if [ $arch = "i386"  ] || [ $arch = "i686" ] 
+        then
+                arch=x32
+        fi
+
+	if [ $arch = "arm64"  ] || [ $arch = "aarch64" ]
+        then
+                arch=arm64
+        fi
+
+	
+	if [ $os = "macos" ]
+	then
+		echo "installing for MacOs"
+		brew install gitleaks
+		gitleaks protect -v --staged --redact
+		exit 0
+	fi
+
+	if [ $os = *"mingw64"* ] || [ $os = *"win"* ]
+	then
+		os=windows
+	fi
+
+	if [ $os != "windows" ]
+	then
+		mkdir -p ~/bin
+		echo https://github.com/gitleaks/gitleaks/releases/download/v"$version"/gitleaks_"$version"_"$os"_"$arch".tar.gz
+		curl -k -L https://github.com/gitleaks/gitleaks/releases/download/v"$version"/gitleaks_"$version"_"$os"_"$arch".tar.gz | tar -xz gitleaks
+		mv -v gitleaks ~/bin
+	else
+		curl -k -L https://github.com/gitleaks/gitleaks/releases/download/v"$version"/gitleaks_"$version"_"$os"_"$arch".zip -L gitleaks_"$version"_"$os"_"$arch".zip -o gitleaks.zip
+		unzip gitleaks.zip -d tmp/
+		mkdir -p ~/bin
+		cp tmp/gitleaks* ~/bin
+		rm -rf tmp/
+		rm -rf gitleaks.zip	
+	fi
+
+fi
+echo 'Gitleaks is installed'
+gitleaks protect -v --staged --redact
+code=$(echo $?)
+if [ $code != "0" ]
+then
+	echo 'the latest commit has been reverted'
+	git revert $(git log | head -1| sed 's/commit //g')
+fi
