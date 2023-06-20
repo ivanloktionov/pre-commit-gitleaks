@@ -23,5 +23,5 @@ curl https://raw.githubusercontent.com/ivanloktionov/pre-commit-gitleaks/main/pr
 If it's needed to disable its execution during the commit perform the following
 
  ```bash
-     git config gitleaks.hooks disable
+ git config gitleaks.hooks disable
  ```
