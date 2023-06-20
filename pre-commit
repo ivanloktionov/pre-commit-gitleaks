@@ -2,6 +2,11 @@
 
 gitleaksEnabled=$(git config gitleaks.hooks)
 
+if [ $gitleaksEnabled != "enable" ]
+then
+  echo 'Gitleaks hooks is not enabled, to proceed please perform the following command "git config gitleaks.hooks enable" and try again'
+  exit 0
+fi
 echo "Gitleaks hooks config is enabled, continue then..."
 
 export PATH=/home/$(whoami)/bin:$PATH
